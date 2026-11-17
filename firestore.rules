@@ -1,0 +1,159 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function hasValidParentUser(userId) {
+      return exists(/databases/$(database)/documents/users/$(userId)) &&
+        get(/databases/$(database)/documents/users/$(userId)).data.uid == request.auth.uid;
+    }
+
+    function isValidUserProfile(data, userId) {
+      return data.keys().hasAll(['uid', 'displayName', 'followedLeagues', 'notificationsEnabled', 'oddsFormat', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['uid', 'displayName', 'followedLeagues', 'notificationsEnabled', 'oddsFormat', 'createdAt', 'updatedAt']) &&
+        data.uid is string && data.uid == userId && data.uid == request.auth.uid && isValidId(data.uid) &&
+        data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 120 &&
+        data.followedLeagues is list && data.followedLeagues.size() <= 25 &&
+        (data.followedLeagues.size() == 0 || (data.followedLeagues[0] is string && data.followedLeagues[0].size() >= 1 && data.followedLeagues[0].size() <= 32)) &&
+        data.notificationsEnabled is bool &&
+        data.oddsFormat is string && data.oddsFormat in ['decimal', 'american'] &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidFavoriteTeam(data, userId, teamKey) {
+      return data.keys().hasAll(['userId', 'teamKey', 'teamId', 'sport', 'league', 'leagueName', 'name', 'shortName', 'abbreviation', 'logo', 'createdAt']) &&
+        data.keys().hasOnly(['userId', 'teamKey', 'teamId', 'sport', 'league', 'leagueName', 'name', 'shortName', 'abbreviation', 'logo', 'createdAt']) &&
+        data.userId is string && data.userId == userId && data.userId == request.auth.uid && isValidId(data.userId) &&
+        data.teamKey is string && data.teamKey == teamKey && isValidId(data.teamKey) &&
+        data.teamId is string && data.teamId.size() >= 1 && data.teamId.size() <= 64 &&
+        data.sport is string && data.sport in ['soccer', 'basketball', 'hockey', 'football'] &&
+        data.league is string && data.league.size() >= 1 && data.league.size() <= 64 &&
+        data.leagueName is string && data.leagueName.size() >= 1 && data.leagueName.size() <= 80 &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 100 &&
+        data.shortName is string && data.shortName.size() >= 1 && data.shortName.size() <= 60 &&
+        data.abbreviation is string && data.abbreviation.size() >= 1 && data.abbreviation.size() <= 16 &&
+        data.logo is string && data.logo.size() <= 300 &&
+        data.createdAt is timestamp;
+    }
+
+    function isValidSavedPrediction(data, userId) {
+      return data.keys().hasAll(['userId', 'eventId', 'sport', 'league', 'matchTitle', 'market', 'selection', 'confidence', 'edgeRating', 'homeWinProb', 'awayWinProb', 'status', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['userId', 'eventId', 'sport', 'league', 'matchTitle', 'market', 'selection', 'confidence', 'edgeRating', 'homeWinProb', 'awayWinProb', 'status', 'createdAt', 'updatedAt']) &&
+        data.userId is string && data.userId == userId && data.userId == request.auth.uid && isValidId(data.userId) &&
+        data.eventId is string && data.eventId.size() >= 1 && data.eventId.size() <= 64 &&
+        data.sport is string && data.sport in ['soccer', 'basketball', 'hockey', 'football'] &&
+        data.league is string && data.league.size() >= 1 && data.league.size() <= 64 &&
+        data.matchTitle is string && data.matchTitle.size() >= 1 && data.matchTitle.size() <= 160 &&
+        data.market is string && data.market.size() >= 1 && data.market.size() <= 100 &&
+        data.selection is string && data.selection.size() >= 1 && data.selection.size() <= 120 &&
+        data.confidence is number && data.confidence >= 0 && data.confidence <= 100 &&
+        data.edgeRating is string && data.edgeRating in ['Alto', 'Moderado', 'Especulativo'] &&
+        data.homeWinProb is number && data.homeWinProb >= 0 && data.homeWinProb <= 100 &&
+        data.awayWinProb is number && data.awayWinProb >= 0 && data.awayWinProb <= 100 &&
+        data.status is string && data.status in ['pending', 'won', 'lost', 'void'] &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidAlertEvent(data, userId) {
+      return data.keys().hasAll(['userId', 'eventId', 'sport', 'title', 'message', 'alertType', 'read', 'createdAt']) &&
+        data.keys().hasOnly(['userId', 'eventId', 'sport', 'title', 'message', 'alertType', 'read', 'createdAt']) &&
+        data.userId is string && data.userId == userId && data.userId == request.auth.uid && isValidId(data.userId) &&
+        data.eventId is string && data.eventId.size() >= 1 && data.eventId.size() <= 64 &&
+        data.sport is string && data.sport in ['soccer', 'basketball', 'hockey', 'football'] &&
+        data.title is string && data.title.size() >= 1 && data.title.size() <= 120 &&
+        data.message is string && data.message.size() >= 1 && data.message.size() <= 280 &&
+        data.alertType is string && data.alertType in ['score', 'kickoff', 'final', 'ai_edge'] &&
+        data.read is bool &&
+        data.createdAt is timestamp;
+    }
+
+    match /users/{userId} {
+      allow get: if isValidId(userId) && isOwner(userId);
+      allow list: if false;
+      allow create: if isValidId(userId) && isOwner(userId) &&
+        isValidUserProfile(incoming(), userId) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isValidId(userId) && isOwner(userId) &&
+        isValidUserProfile(incoming(), userId) &&
+        incoming().uid == existing().uid &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'followedLeagues', 'notificationsEnabled', 'oddsFormat', 'updatedAt']);
+      allow delete: if isValidId(userId) && isOwner(userId);
+
+      match /favorite_teams/{teamKey} {
+        allow get: if isValidId(userId) && isValidId(teamKey) && isOwner(userId) && hasValidParentUser(userId);
+        allow list: if isOwner(userId) && resource.data.userId == request.auth.uid;
+        allow create: if isValidId(userId) && isValidId(teamKey) && isOwner(userId) &&
+          isValidFavoriteTeam(incoming(), userId, teamKey) &&
+          incoming().createdAt == request.time &&
+          hasValidParentUser(userId);
+        allow update: if false;
+        allow delete: if isValidId(userId) && isValidId(teamKey) && isOwner(userId) && hasValidParentUser(userId);
+      }
+
+      match /saved_predictions/{predictionKey} {
+        allow get: if isValidId(userId) && isValidId(predictionKey) && isOwner(userId) && hasValidParentUser(userId);
+        allow list: if isOwner(userId) && resource.data.userId == request.auth.uid;
+        allow create: if isValidId(userId) && isValidId(predictionKey) && isOwner(userId) &&
+          isValidSavedPrediction(incoming(), userId) &&
+          incoming().status == 'pending' &&
+          incoming().createdAt == request.time &&
+          incoming().updatedAt == request.time &&
+          hasValidParentUser(userId);
+        allow update: if isValidId(userId) && isValidId(predictionKey) && isOwner(userId) &&
+          isValidSavedPrediction(incoming(), userId) &&
+          existing().status == 'pending' &&
+          incoming().userId == existing().userId &&
+          incoming().eventId == existing().eventId &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().updatedAt == request.time &&
+          incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt']) &&
+          hasValidParentUser(userId);
+        allow delete: if isValidId(userId) && isValidId(predictionKey) && isOwner(userId) && hasValidParentUser(userId);
+      }
+
+      match /alert_events/{alertKey} {
+        allow get: if isValidId(userId) && isValidId(alertKey) && isOwner(userId) && hasValidParentUser(userId);
+        allow list: if isOwner(userId) && resource.data.userId == request.auth.uid;
+        allow create: if isValidId(userId) && isValidId(alertKey) && isOwner(userId) &&
+          isValidAlertEvent(incoming(), userId) &&
+          incoming().createdAt == request.time &&
+          hasValidParentUser(userId);
+        allow update: if isValidId(userId) && isValidId(alertKey) && isOwner(userId) &&
+          isValidAlertEvent(incoming(), userId) &&
+          incoming().userId == existing().userId &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().diff(existing()).affectedKeys().hasOnly(['read']) &&
+          hasValidParentUser(userId);
+        allow delete: if isValidId(userId) && isValidId(alertKey) && isOwner(userId) && hasValidParentUser(userId);
+      }
+    }
+  }
+}

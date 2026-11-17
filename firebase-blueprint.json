@@ -1,0 +1,240 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Preferencias sincronizadas entre dispositivos del usuario para ligas seguidas, alertas y formato de cuotas.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Identificador único de Firebase Auth del propietario."
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Nombre visible del usuario."
+        },
+        "followedLeagues": {
+          "type": "array",
+          "description": "Lista acotada de códigos de ligas seguidas por el usuario (máximo 25)."
+        },
+        "notificationsEnabled": {
+          "type": "boolean",
+          "description": "Estado de notificaciones en tiempo real."
+        },
+        "oddsFormat": {
+          "type": "string",
+          "enum": ["decimal", "american"],
+          "description": "Formato de visualización de cuotas."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Fecha de creación establecida por el servidor."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Última actualización establecida por el servidor."
+        }
+      },
+      "required": ["uid", "displayName", "followedLeagues", "notificationsEnabled", "oddsFormat", "createdAt", "updatedAt"]
+    },
+    "FavoriteTeam": {
+      "title": "FavoriteTeam",
+      "description": "Equipo favorito guardado por el usuario para seguimiento rápido y alertas en tiempo real.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "teamKey": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "teamId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "sport": {
+          "type": "string",
+          "enum": ["soccer", "basketball", "hockey", "football"]
+        },
+        "league": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "leagueName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "shortName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "abbreviation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16
+        },
+        "logo": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["userId", "teamKey", "teamId", "sport", "league", "leagueName", "name", "shortName", "abbreviation", "logo", "createdAt"]
+    },
+    "SavedPrediction": {
+      "title": "SavedPrediction",
+      "description": "Recomendación predictiva generada por IA y guardada para seguimiento histórico.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "eventId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "sport": {
+          "type": "string",
+          "enum": ["soccer", "basketball", "hockey", "football"]
+        },
+        "league": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "matchTitle": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "market": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "selection": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "confidence": {
+          "type": "number"
+        },
+        "edgeRating": {
+          "type": "string",
+          "enum": ["Alto", "Moderado", "Especulativo"]
+        },
+        "homeWinProb": {
+          "type": "number"
+        },
+        "awayWinProb": {
+          "type": "number"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "won", "lost", "void"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["userId", "eventId", "sport", "league", "matchTitle", "market", "selection", "confidence", "edgeRating", "homeWinProb", "awayWinProb", "status", "createdAt", "updatedAt"]
+    },
+    "AlertEvent": {
+      "title": "AlertEvent",
+      "description": "Notificación de marcador o resultado sincronizada entre dispositivos.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "eventId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "sport": {
+          "type": "string",
+          "enum": ["soccer", "basketball", "hockey", "football"]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 280
+        },
+        "alertType": {
+          "type": "string",
+          "enum": ["score", "kickoff", "final", "ai_edge"]
+        },
+        "read": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["userId", "eventId", "sport", "title", "message", "alertType", "read", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Perfil privado y preferencias sincronizadas de un usuario autenticado."
+    },
+    "/users/{userId}/favorite_teams/{teamKey}": {
+      "schema": { "$ref": "#/entities/FavoriteTeam" },
+      "description": "Equipos favoritos seguidos por el usuario."
+    },
+    "/users/{userId}/saved_predictions/{predictionKey}": {
+      "schema": { "$ref": "#/entities/SavedPrediction" },
+      "description": "Predicciones con IA guardadas por el usuario."
+    },
+    "/users/{userId}/alert_events/{alertKey}": {
+      "schema": { "$ref": "#/entities/AlertEvent" },
+      "description": "Historial de notificaciones de resultados y alertas en tiempo real."
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "VektorSport",
+  "description": "Plataforma minimalista de predicciones deportivas en tiempo real para fútbol, baloncesto, hockey y fútbol americano con análisis predictivo por IA, estadísticas avanzadas de jugadores y sincronización multiplataforma.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
